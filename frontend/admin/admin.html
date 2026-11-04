@@ -24,7 +24,8 @@
     button, input, select { font: inherit; }
     button { cursor: pointer; }
     .app-shell { display: flex; min-height: 100vh; }
-    .sidebar { width: 248px; padding: 28px 18px; color: #fff; background: #18234a; }
+    
+    .sidebar { width: 248px; padding: 28px 18px; color: #fff; background: #18234a; flex-shrink: 0; }
     .brand { display: flex; align-items: center; gap: 10px; margin: 0 12px 42px; font-size: 1.1rem; font-weight: 800; }
     .brand-mark { display: grid; width: 32px; height: 32px; place-items: center; color: #18234a; background: #8de7cf; border-radius: 9px; font-weight: 900; }
     .nav-label { margin: 0 12px 10px; color: #9da9d1; font-size: .72rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
@@ -32,65 +33,82 @@
     .nav-link.active, .nav-link:hover { color: #fff; background: #2b3a73; }
     .nav-icon { width: 20px; text-align: center; }
     .sidebar-footer { margin-top: auto; padding: 18px 12px 0; color: #9da9d1; font-size: .8rem; }
+    
     .main { flex: 1; min-width: 0; padding: 34px clamp(22px, 5vw, 64px); }
     .topbar { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 30px; }
     .eyebrow { margin: 0 0 6px; color: var(--primary); font-size: .78rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
     h1 { margin: 0; font-size: clamp(1.7rem, 3vw, 2.3rem); }
     .date { color: var(--muted); font-size: .9rem; }
-    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 22px; }
-    .stat, .card { padding: 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 8px 30px rgba(30, 45, 80, .04); }
-    .stat-label { color: var(--muted); font-size: .82rem; }
-    .stat-value { display: block; margin-top: 8px; font-size: 1.8rem; font-weight: 800; }
-    .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; margin-bottom: 20px; }
-    h2 { margin: 0; font-size: 1.1rem; }
-    .card-subtitle { margin: 6px 0 0; color: var(--muted); font-size: .87rem; line-height: 1.5; }
-    .button { padding: 10px 15px; border: 0; border-radius: 8px; font-weight: 700; }
-    .button-primary { color: #fff; background: var(--primary); }
-    .button-primary:hover { background: var(--primary-dark); }
-    .button-secondary { color: var(--ink); background: #edf0f7; }
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: .84rem; }
-    th { padding: 11px 10px; color: var(--muted); border-bottom: 1px solid var(--line); font-size: .72rem; text-align: left; text-transform: uppercase; letter-spacing: .04em; }
-    td { padding: 14px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-    tbody tr:last-child td { border-bottom: 0; }
-    .badge { display: inline-flex; padding: 5px 9px; border-radius: 999px; color: var(--success); background: #e4f6ed; font-size: .72rem; font-weight: 700; }
-    .modal { display: none; position: fixed; inset: 0; z-index: 2; place-items: center; padding: 20px; background: rgba(15, 23, 48, .55); }
-    .modal.open { display: grid; }
-    .modal-card { width: min(100%, 480px); padding: 26px; background: #fff; border-radius: 15px; }
-    .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
-    .close { border: 0; color: var(--muted); background: transparent; font-size: 1.4rem; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    
+    .admin-layout { display: grid; grid-template-columns: 320px 120px 1fr; gap: 20px; align-items: start; margin-top: 20px; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 8px 30px rgba(30, 45, 80, .04); padding: 22px; }
+    
+    .list-section { display: flex; flex-direction: column; gap: 15px; height: 750px; }
+    .search-bar { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--background); }
+    .employee-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; border: 1px solid var(--line); border-radius: 8px; }
+    .employee-list li { padding: 14px; border-bottom: 1px solid var(--line); cursor: pointer; transition: background 0.2s; font-size: 0.9rem; }
+    .employee-list li:last-child { border-bottom: none; }
+    .employee-list li:hover { background: var(--background); }
+    .employee-list li.active { background: #eaf0ff; color: var(--primary-dark); font-weight: 700; border-left: 4px solid var(--primary); }
+    
+    .action-column { display: flex; flex-direction: column; gap: 15px; padding-top: 60px; }
+    .btn-action { padding: 12px; border: 0; border-radius: 8px; font-weight: 700; color: #fff; text-align: center; transition: opacity 0.2s; }
+    .btn-action:hover { opacity: 0.85; }
+    .btn-delete { background: var(--danger); }
+    .btn-edit { background: var(--primary); }
+    .btn-add { background: var(--success); }
+    
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .form-field { display: flex; flex-direction: column; gap: 6px; }
     .form-field.full { grid-column: 1 / -1; }
-    label { color: var(--muted); font-size: .78rem; font-weight: 700; }
-    input, select { width: 100%; padding: 10px 11px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: #fff; }
-    .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+    label { color: var(--muted); font-size: .78rem; font-weight: 700; text-transform: uppercase; }
+    
+    input:not([type="checkbox"]), select { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: var(--background); }
+    input:focus, select:focus { outline: 2px solid var(--primary); background: #fff; }
+    
+    /* Clase para campos manejados por el sistema (Base de datos) */
+    .readonly-input { background: #e2e6f0 !important; color: var(--muted) !important; cursor: not-allowed; font-weight: 700; }
+    .label-hint { font-size: 0.65rem; text-transform: none; font-weight: normal; margin-left: 4px; color: var(--primary); }
+
+    .weekly-schedule { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff; }
+    .schedule-header { display: grid; grid-template-columns: 60px 1fr 1fr 1fr 1fr; gap: 5px; padding: 12px 8px; background: var(--background); border-bottom: 1px solid var(--line); font-size: 0.65rem; font-weight: 800; color: var(--muted); text-transform: uppercase; text-align: center; }
+    .schedule-row { display: grid; grid-template-columns: 60px 1fr 1fr 1fr 1fr; gap: 8px; padding: 8px; border-bottom: 1px solid var(--line); align-items: center; }
+    .schedule-row:last-child { border-bottom: none; }
+    .schedule-row input[type="time"] { padding: 6px; font-size: 0.8rem; text-align: center; }
+    .day-name { font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px; color: var(--ink); }
+    
+    .qr-section { margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--line); display: flex; align-items: flex-start; gap: 20px; }
+    .qr-box { width: 120px; height: 120px; border: 2px solid var(--line); border-radius: 12px; display: grid; place-items: center; background: #fff; font-size: 0.8rem; color: var(--muted); font-weight: bold; }
+    .qr-actions { display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+    .button-secondary { padding: 10px 15px; border: 1px solid var(--line); border-radius: 8px; font-weight: 700; color: var(--ink); background: #edf0f7; }
+    .button-secondary:hover { background: #e2e6f0; }
+
+    @media (max-width: 1100px) {
+      .admin-layout { grid-template-columns: 250px 1fr; }
+      .action-column { grid-column: 1 / -1; flex-direction: row; padding-top: 0; justify-content: flex-end; }
+    }
     @media (max-width: 900px) {
       .sidebar { width: 72px; padding: 20px 10px; }
       .brand { justify-content: center; margin: 0 0 34px; }
       .brand-text, .nav-label, .nav-link span:not(.nav-icon), .sidebar-footer { display: none; }
       .nav-link { justify-content: center; }
       .main { padding: 26px 18px; }
-    }
-    @media (max-width: 560px) {
-      .topbar { align-items: flex-start; flex-direction: column; }
-      .stats { grid-template-columns: 1fr; }
-      .card, .stat { padding: 18px; }
-      .form-grid { grid-template-columns: 1fr; }
-      .form-field.full { grid-column: auto; }
+      .schedule-header, .schedule-row { grid-template-columns: 1fr; gap: 2px; }
+      .schedule-row { padding-bottom: 15px; }
+      .day-name { margin-bottom: 5px; }
     }
   </style>
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar">
-      <a class="brand" href="../index/index.html"><span class="brand-mark">C</span><span class="brand-text">CodeShieldQA</span></a>
+      <a class="brand" href="#"><span class="brand-mark">C</span><span class="brand-text">CodeShieldQA</span></a>
       <p class="nav-label">Panel</p>
       <nav aria-label="Navegación principal">
-        <a class="nav-link" href="../index/index.html"><span class="nav-icon">▣</span><span>Asistencia</span></a>
-        <a class="nav-link active" href="admin.html"><span class="nav-icon">⚙</span><span>Administración</span></a>
+        <a class="nav-link" href="#"><span class="nav-icon">▣</span><span>Asistencia</span></a>
+        <a class="nav-link active" href="#"><span class="nav-icon">⚙</span><span>Administración</span></a>
       </nav>
-      <p class="sidebar-footer">Acceso administrativo<br>v0.1 · Frontend</p>
+      <p class="sidebar-footer">Acceso administrativo<br>v0.4 · Frontend</p>
     </aside>
 
     <main class="main">
@@ -102,69 +120,150 @@
         <time class="date" id="current-date"></time>
       </header>
 
-      <section class="stats" aria-label="Resumen de trabajadores">
-        <div class="stat"><span class="stat-label">Trabajadores activos</span><strong class="stat-value">10</strong></div>
-        <div class="stat"><span class="stat-label">Horarios configurados</span><strong class="stat-value">10</strong></div>
-        <div class="stat"><span class="stat-label">Incidencias del día</span><strong class="stat-value">2</strong></div>
-      </section>
+      <div class="admin-layout">
+        <section class="card list-section">
+          <input type="search" class="search-bar" placeholder="Buscar empleado...">
+          <ul class="employee-list">
+            <li class="active">Ana López</li>
+            <li>Juan Pérez</li>
+            <li>María Ruiz</li>
+            <li>Pedro Díaz</li>
+          </ul>
+        </section>
 
-      <section class="card">
-        <div class="card-header">
-          <div>
-            <h2>Trabajadores registrados</h2>
-            <p class="card-subtitle">Administra datos, códigos QR y horarios asignados.</p>
+        <div class="action-column">
+          <button class="btn-action btn-delete">Eliminar</button>
+          <button class="btn-action btn-edit">Editar</button>
+          <button class="btn-action btn-add">Agregar</button>
+        </div>
+
+        <section class="card">
+          <form class="form-grid" id="employee-form">
+            <div class="form-field full">
+              <label>Nombre</label>
+              <input type="text" value="Ana" disabled>
+            </div>
+            <div class="form-field">
+              <label>Apellido PA</label>
+              <input type="text" value="López" disabled>
+            </div>
+            <div class="form-field">
+              <label>Apellido MA</label>
+              <input type="text" value="García" disabled>
+            </div>
+            
+            <!-- Campo de Número de Empleado (Solo lectura) -->
+            <div class="form-field">
+              <label>Num empleado <span class="label-hint">(Autogenerado)</span></label>
+              <input type="text" class="readonly-input" value="15" disabled readonly>
+            </div>
+            
+            <div class="form-field">
+              <label>Correo</label>
+              <input type="email" value="ana.lopez@empresa.mx" disabled>
+            </div>
+
+            <div class="form-field full">
+              <label>Configuración de Horarios (Jornadas)</label>
+              <div class="weekly-schedule">
+                <div class="schedule-header">
+                  <span>Día</span>
+                  <span>Entrada 1</span>
+                  <span>Salida 1</span>
+                  <span>Entrada 2</span>
+                  <span>Salida 2</span>
+                </div>
+                
+                <div class="schedule-row">
+                  <span class="day-name"><input type="checkbox" checked disabled> Lun</span>
+                  <input type="time" value="08:00" disabled>
+                  <input type="time" value="16:00" disabled>
+                  <input type="time" disabled>
+                  <input type="time" disabled>
+                </div>
+                
+                <div class="schedule-row">
+                  <span class="day-name"><input type="checkbox" checked disabled> Mar</span>
+                  <input type="time" value="08:00" disabled>
+                  <input type="time" value="16:00" disabled>
+                  <input type="time" disabled>
+                  <input type="time" disabled>
+                </div>
+                
+                <div class="schedule-row">
+                  <span class="day-name"><input type="checkbox" checked disabled> Mié</span>
+                  <input type="time" value="08:00" disabled>
+                  <input type="time" value="13:00" disabled>
+                  <input type="time" value="17:00" disabled>
+                  <input type="time" value="20:00" disabled>
+                </div>
+                
+                <div class="schedule-row">
+                  <span class="day-name"><input type="checkbox" checked disabled> Jue</span>
+                  <input type="time" value="09:00" disabled>
+                  <input type="time" value="17:00" disabled>
+                  <input type="time" disabled>
+                  <input type="time" disabled>
+                </div>
+                
+                <div class="schedule-row">
+                  <span class="day-name"><input type="checkbox" checked disabled> Vie</span>
+                  <input type="time" value="08:00" disabled>
+                  <input type="time" value="15:00" disabled>
+                  <input type="time" disabled>
+                  <input type="time" disabled>
+                </div>
+                
+                <div class="schedule-row">
+                  <span class="day-name"><input type="checkbox" disabled> Sáb</span>
+                  <input type="time" disabled>
+                  <input type="time" disabled>
+                  <input type="time" disabled>
+                  <input type="time" disabled>
+                </div>
+
+                <div class="schedule-row">
+                  <span class="day-name"><input type="checkbox" disabled> Dom</span>
+                  <input type="time" disabled>
+                  <input type="time" disabled>
+                  <input type="time" disabled>
+                  <input type="time" disabled>
+                </div>
+              </div>
+            </div>
+          </form>
+
+          <div class="qr-section">
+            <div class="qr-box">[ IMG QR ]</div>
+            <div class="qr-actions">
+              <label>Código de Acceso</label>
+              <button type="button" class="button-secondary">Generar nuevo QR</button>
+              <button type="button" class="button-secondary">Imprimir Gafete</button>
+            </div>
           </div>
-          <button class="button button-primary" id="add-button" type="button">+ Nuevo trabajador</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Trabajador</th><th>Número</th><th>Correo</th><th>Horario</th><th>Estado</th></tr></thead>
-            <tbody id="workers">
-              <tr><td>Ana López</td><td>15</td><td>ana.lopez@empresa.mx</td><td>08:00 - 16:00</td><td><span class="badge">Activo</span></td></tr>
-              <tr><td>Juan Pérez</td><td>23</td><td>juan.perez@empresa.mx</td><td>08:00 - 16:00</td><td><span class="badge">Activo</span></td></tr>
-              <tr><td>María Ruiz</td><td>47</td><td>maria.ruiz@empresa.mx</td><td>08:00 - 16:00</td><td><span class="badge">Activo</span></td></tr>
-              <tr><td>Pedro Díaz</td><td>16</td><td>pedro.diaz@empresa.mx</td><td>09:00 - 17:00</td><td><span class="badge">Activo</span></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   </div>
 
-  <div class="modal" id="worker-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <form class="modal-card" id="worker-form">
-      <div class="modal-header"><h2 id="modal-title">Nuevo trabajador</h2><button class="close" id="close-button" type="button" aria-label="Cerrar">×</button></div>
-      <div class="form-grid">
-        <div class="form-field full"><label for="name">Nombre completo</label><input id="name" name="name" required placeholder="Nombre y apellidos"></div>
-        <div class="form-field"><label for="number">Número de empleado</label><input id="number" name="number" required inputmode="numeric" placeholder="Ej. 52"></div>
-        <div class="form-field"><label for="schedule">Horario</label><select id="schedule" name="schedule"><option>08:00 - 16:00</option><option>09:00 - 17:00</option><option>08:00 - 13:00 / 17:00 - 20:00</option></select></div>
-        <div class="form-field full"><label for="email">Correo electrónico</label><input id="email" name="email" type="email" required placeholder="nombre@empresa.mx"></div>
-      </div>
-      <div class="form-actions"><button class="button button-secondary" id="cancel-button" type="button">Cancelar</button><button class="button button-primary" type="submit">Guardar trabajador</button></div>
-    </form>
-  </div>
-
   <script>
-    const modal = document.querySelector("#worker-modal");
-    const form = document.querySelector("#worker-form");
-    const workers = document.querySelector("#workers");
     document.querySelector("#current-date").textContent = new Intl.DateTimeFormat("es-MX", {
       weekday: "long", day: "numeric", month: "long", year: "numeric"
     }).format(new Date());
 
-    function closeModal() { modal.classList.remove("open"); }
-    document.querySelector("#add-button").addEventListener("click", () => modal.classList.add("open"));
-    document.querySelector("#close-button").addEventListener("click", closeModal);
-    document.querySelector("#cancel-button").addEventListener("click", closeModal);
-    modal.addEventListener("click", (event) => { if (event.target === modal) closeModal(); });
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const data = new FormData(form);
-      const row = document.createElement("tr");
-      row.innerHTML = `<td>${data.get("name")}</td><td>${data.get("number")}</td><td>${data.get("email")}</td><td>${data.get("schedule")}</td><td><span class="badge">Activo</span></td>`;
-      workers.append(row);
-      form.reset();
-      closeModal();
+    const editBtn = document.querySelector('.btn-edit');
+    // Excluir específicamente los campos que tengan la clase .readonly-input
+    const inputs = document.querySelectorAll('#employee-form input:not(.readonly-input)');
+
+    editBtn.addEventListener('click', () => {
+      inputs.forEach(input => {
+        input.disabled = !input.disabled;
+        if(input.type !== 'checkbox') {
+          input.style.background = input.disabled ? 'var(--background)' : '#ffffff';
+        }
+      });
+      editBtn.textContent = editBtn.textContent === 'Editar' ? 'Guardar' : 'Editar';
+      editBtn.style.background = editBtn.textContent === 'Guardar' ? 'var(--success)' : 'var(--primary)';
     });
   </script>
 </body>
