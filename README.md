@@ -9,6 +9,8 @@ La pantalla [frontend/index/index.html](frontend/index/index.html) permite:
 - Clasificar entradas puntuales o con retardo y salidas permitidas.
 - Mostrar inicialmente el panel de logs vacío y, después de cada lectura, únicamente los movimientos del trabajador identificado.
 - Limpiar automáticamente la vista de logs después de 30 segundos, sin borrar los registros persistidos.
+- Mostrar un botón de descarga PDF únicamente después de registrar mediante QR, con los logs del trabajador identificado.
+- Aplicar cooldown a lecturas QR y descargas PDF para evitar envíos o descargas duplicadas.
 - Persistir temporalmente los registros del día en `localStorage` mientras no existe conexión al backend.
 - Alternar entrada y salida según el número total de lecturas del trabajador, permitiendo registrar dobles turnos.
 - Renderizar los registros sin insertar contenido HTML proveniente del usuario.

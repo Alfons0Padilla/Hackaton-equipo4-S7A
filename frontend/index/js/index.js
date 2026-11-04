@@ -4,11 +4,14 @@
   const API_BASE_URL = window.CODE_SHIELD_API_BASE_URL || "";
   const STORAGE_KEY = "codeshieldqa.attendance.v1";
   const LOG_VIEW_TIMEOUT_MS = 30000;
+  const QR_SUBMIT_COOLDOWN_MS = 5000;
+  const PDF_DOWNLOAD_COOLDOWN_MS = 5000;
 
   const elements = {
     cameraButton: document.querySelector("#camera-button"),
     idButton: document.querySelector("#id-button"),
     qrButton: document.querySelector("#qr-button"),
+    pdfButton: document.querySelector("#pdf-button"),
     idModal: document.querySelector("#id-modal"),
     idForm: document.querySelector("#id-form"),
     userId: document.querySelector("#user-id"),
@@ -27,6 +30,12 @@
   let lastScan = "";
   let lastScanAt = 0;
   let clearLogsTimer;
+  let qrSubmissionInProgress = false;
+  let lastQrSubmissionAt = 0;
+  let pdfDownloadInProgress = false;
+  let lastPdfDownloadAt = 0;
+  let selectedWorkerId = "";
+  let selectedWorkerLogs = [];
 
   const localRepository = {
     async listToday() {
@@ -130,10 +139,15 @@
   }
 
   function showWorkerLogs(logs, workerId) {
-    renderLogs(filterWorkerLogs(logs, workerId));
+    selectedWorkerId = workerId;
+    selectedWorkerLogs = filterWorkerLogs(logs, workerId);
+    renderLogs(selectedWorkerLogs);
     clearTimeout(clearLogsTimer);
     clearLogsTimer = setTimeout(() => {
+      selectedWorkerId = "";
+      selectedWorkerLogs = [];
       renderLogs([]);
+      elements.pdfButton.hidden = true;
     }, LOG_VIEW_TIMEOUT_MS);
   }
 
@@ -167,7 +181,8 @@
     elements.userId.setAttribute("aria-invalid", String(Boolean(message)));
   }
 
-  async function registerAttendance(rawId) {
+  async function registerAttendance(rawId, source = "id") {
+    if (source !== "qr") elements.pdfButton.hidden = true;
     const workerId = normalizeWorkerId(rawId);
     if (!workerId || workerId.length < 3) throw new Error("Ingresa un ID de trabajador válido.");
     const todayLogs = await attendanceRepository.listToday();
@@ -184,8 +199,83 @@
     };
     await attendanceRepository.createAttendance(attendance);
     showWorkerLogs(await attendanceRepository.listToday(), workerId);
+    elements.pdfButton.hidden = source !== "qr";
     setStatus(`${movement} registrada para ${workerId}`);
     return attendance;
+  }
+
+  function pdfSafeText(value) {
+    return String(value || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^\x20-\x7E]/g, "?")
+      .replace(/\\/g, "\\\\")
+      .replace(/\(/g, "\\(")
+      .replace(/\)/g, "\\)");
+  }
+
+  function createPdf(lines) {
+    const content = [
+      "BT",
+      "/F1 14 Tf",
+      "50 760 Td",
+      ...lines.flatMap((line, index) => [
+        `(${pdfSafeText(line)}) Tj`,
+        ...(index < lines.length - 1 ? ["0 -18 Td"] : [])
+      ]),
+      "ET"
+    ].join("\n");
+    const objects = [
+      "<< /Type /Catalog /Pages 2 0 R >>",
+      "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+      "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>",
+      `<< /Length ${content.length} >>\nstream\n${content}\nendstream`,
+      "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"
+    ];
+    let pdf = "%PDF-1.4\n";
+    const offsets = [0];
+    objects.forEach((object, index) => {
+      offsets.push(pdf.length);
+      pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+    });
+    const xrefOffset = pdf.length;
+    pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+    offsets.slice(1).forEach((offset) => {
+      pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+    });
+    pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+    return new Blob([new TextEncoder().encode(pdf)], { type: "application/pdf" });
+  }
+
+  function downloadWorkerPdf() {
+    const now = Date.now();
+    if (!selectedWorkerId || !selectedWorkerLogs.length || pdfDownloadInProgress ||
+        now - lastPdfDownloadAt < PDF_DOWNLOAD_COOLDOWN_MS) return;
+    pdfDownloadInProgress = true;
+    lastPdfDownloadAt = now;
+    elements.pdfButton.disabled = true;
+    try {
+      const lines = [
+        "CodeShieldQA - Logs de asistencia",
+        `Trabajador: ${selectedWorkerId}`,
+        `Fecha: ${getTodayKey()}`,
+        "",
+        "Hora | Movimiento | Estado",
+        ...selectedWorkerLogs.slice().reverse().map((log) =>
+          `${log.time} | ${log.movement} | ${log.status}`)
+      ];
+      const url = URL.createObjectURL(createPdf(lines));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `logs-${selectedWorkerId}-${getTodayKey()}.pdf`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } finally {
+      setTimeout(() => {
+        pdfDownloadInProgress = false;
+        elements.pdfButton.disabled = false;
+      }, PDF_DOWNLOAD_COOLDOWN_MS);
+    }
   }
 
   function stopCamera(message = "Cámara desconectada") {
@@ -203,10 +293,19 @@
     try {
       const codes = await detector.detect(elements.camera);
       const value = codes[0]?.rawValue?.trim();
-      if (value && (value !== lastScan || Date.now() - lastScanAt > 3000)) {
+      const now = Date.now();
+      if (value && !qrSubmissionInProgress &&
+          (value !== lastScan || now - lastScanAt > QR_SUBMIT_COOLDOWN_MS) &&
+          now - lastQrSubmissionAt >= QR_SUBMIT_COOLDOWN_MS) {
         lastScan = value;
-        lastScanAt = Date.now();
-        await registerAttendance(value);
+        lastScanAt = now;
+        qrSubmissionInProgress = true;
+        try {
+          await registerAttendance(value, "qr");
+          lastQrSubmissionAt = Date.now();
+        } finally {
+          qrSubmissionInProgress = false;
+        }
       }
     } catch (error) {
       console.error("No se pudo leer el código QR:", error);
@@ -245,16 +344,19 @@
     weekday: "long", day: "numeric", month: "long", year: "numeric"
   }).format(new Date());
   elements.idButton.addEventListener("click", () => {
+    elements.pdfButton.hidden = true;
     elements.idModal.classList.add("open");
     elements.userId.focus();
   });
   elements.qrButton.addEventListener("click", startCamera);
   elements.cameraButton.addEventListener("click", () => stopCamera());
+  elements.pdfButton.addEventListener("click", downloadWorkerPdf);
   elements.idForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     showIdError();
     try {
       await registerAttendance(elements.userId.value);
+      elements.pdfButton.hidden = true;
       elements.idForm.reset();
       closeModal();
     } catch (error) {
