@@ -70,6 +70,36 @@
     .badge-warning { color: var(--warning); background: #fff1d8; }
     .badge-danger { color: var(--danger); background: #fde7eb; }
     .empty { display: none; padding: 36px 12px; color: var(--muted); text-align: center; }
+    /* Layout based on the Checker Entrada/Salida mockup. */
+    body { background: #f0f3f8; }
+    .sidebar { display: none; }
+    .main { width: min(1120px, 100%); margin: 0 auto; padding: 42px 28px 56px; }
+    .topbar { justify-content: center; margin-bottom: 34px; text-align: center; }
+    .topbar .date { display: none; }
+    .eyebrow { color: #64708a; }
+    h1 { color: #1d2b45; font-size: clamp(1.8rem, 3.5vw, 2.6rem); letter-spacing: -.03em; }
+    .grid { grid-template-columns: minmax(290px, .85fr) minmax(400px, 1.25fr); gap: 30px; align-items: stretch; }
+    .grid > article:first-child { grid-column: 2; grid-row: 1; }
+    .grid > article:last-child { grid-column: 1; grid-row: 1; }
+    .card { padding: 22px; border-color: #d7ddea; border-radius: 12px; box-shadow: 0 12px 30px rgba(37, 51, 82, .08); }
+    .card-header { margin-bottom: 16px; }
+    .card-subtitle { font-size: .82rem; }
+    .camera-frame { min-height: 340px; border: 8px solid #e6eaf2; border-radius: 6px; background: #cbd3df; }
+    .camera-frame video { min-height: 324px; }
+    .camera-placeholder { color: #41506a; }
+    .camera-icon { color: #536584; }
+    .camera-actions { flex-wrap: wrap; }
+    .button-primary { background: #273d66; }
+    .button-primary:hover { background: #1b2d50; }
+    .button-secondary { background: #e7ebf2; }
+    .logs-card { min-height: 100%; }
+    .table-wrap { min-height: 290px; }
+    th { padding: 10px 8px; }
+    td { padding: 12px 8px; }
+    .mockup-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .mockup-actions .button { flex: 1; padding: 9px 10px; font-size: .8rem; }
+    .button-entry { color: #205e49; background: #d9f1e7; }
+    .button-exit { color: #8b3c48; background: #f9e1e6; }
     @media (max-width: 900px) {
       .sidebar { width: 72px; padding: 20px 10px; }
       .brand { justify-content: center; margin: 0 0 34px; }
@@ -77,6 +107,7 @@
       .nav-link { justify-content: center; }
       .main { padding: 26px 18px; }
       .grid { grid-template-columns: 1fr; }
+      .grid > article:first-child, .grid > article:last-child { grid-column: 1; grid-row: auto; }
     }
     @media (max-width: 560px) {
       .topbar { align-items: flex-start; flex-direction: column; }
@@ -100,7 +131,7 @@
       <header class="topbar">
         <div>
           <p class="eyebrow">Control de asistencia</p>
-          <h1>Registro mediante QR</h1>
+          <h1>Checker Entrada/Salida</h1>
         </div>
         <time class="date" id="current-date"></time>
       </header>
@@ -122,6 +153,10 @@
             </div>
             <span class="scan-line" aria-hidden="true"></span>
           </div>
+          <div class="mockup-actions" aria-label="Tipo de movimiento">
+            <button class="button button-entry" type="button" data-movement="Entrada">Entrada</button>
+            <button class="button button-exit" type="button" data-movement="Salida">Salida</button>
+          </div>
           <div class="camera-actions">
             <button class="button button-primary" id="camera-button" type="button">Activar cámara</button>
             <button class="button button-secondary" id="demo-button" type="button">Simular lectura</button>
@@ -129,7 +164,7 @@
           <div class="status"><span class="status-dot" id="status-dot"></span><span id="camera-status">Cámara desconectada</span></div>
         </article>
 
-        <article class="card">
+        <article class="card logs-card">
           <div class="card-header">
             <div>
               <h2>Logs de asistencia</h2>
@@ -163,6 +198,8 @@
     const statusDot = document.querySelector("#status-dot");
     const logs = document.querySelector("#logs");
     const logCount = document.querySelector("#log-count");
+    const movementButtons = document.querySelectorAll("[data-movement]");
+    let selectedMovement = "Entrada";
     let stream;
 
     document.querySelector("#current-date").textContent = new Intl.DateTimeFormat("es-MX", {
@@ -202,7 +239,7 @@
       const now = new Date();
       const time = now.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
       const row = document.createElement("tr");
-      row.innerHTML = `<td>Lectura de demostración</td><td>${time}</td><td>Entrada</td><td><span class="badge badge-success">Puntual</span></td>`;
+      row.innerHTML = `<td>Lectura de demostración</td><td>${time}</td><td>${selectedMovement}</td><td><span class="badge badge-success">Puntual</span></td>`;
       logs.prepend(row);
       logCount.textContent = `${logs.rows.length} registros`;
       document.querySelector("#empty-logs").style.display = "none";
@@ -210,6 +247,12 @@
 
     cameraButton.addEventListener("click", toggleCamera);
     demoButton.addEventListener("click", addDemoLog);
+    movementButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        selectedMovement = button.dataset.movement;
+        movementButtons.forEach((item) => item.setAttribute("aria-pressed", item === button ? "true" : "false"));
+      });
+    });
   </script>
 </body>
 </html>
