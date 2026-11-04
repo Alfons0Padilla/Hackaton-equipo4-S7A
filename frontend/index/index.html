@@ -32,16 +32,20 @@
         <article class="card">
           <div class="card-header">
             <div>
-              <h2>Escáner de cámara</h2>
-              <p class="card-subtitle">Enfoca el código QR del trabajador para registrar su entrada o salida.</p>
+              <h2>Marcar asistencia</h2>
+              <p class="card-subtitle">Selecciona una opción para registrar la entrada o salida del trabajador.</p>
             </div>
           </div>
           <div class="camera-frame" id="camera-frame">
             <video id="camera" autoplay muted playsinline aria-label="Vista previa de la cámara"></video>
             <div class="camera-placeholder">
               <div class="camera-icon">▣</div>
-              <strong>La cámara está apagada</strong>
-              <p>Activa la cámara para iniciar el escaneo.</p>
+              <strong>Registro de asistencia</strong>
+              <p>Marca la hora con el ID del usuario o inicia el lector QR.</p>
+              <div class="register-actions">
+                <button class="button button-primary" id="id-button" type="button">Marcar por ID</button>
+                <button class="button button-secondary" id="qr-button" type="button">Iniciar con QR</button>
+              </div>
             </div>
             <span class="scan-line" aria-hidden="true"></span>
           </div>
@@ -50,10 +54,9 @@
             <button class="button button-exit" type="button" data-movement="Salida">Salida</button>
           </div>
           <div class="camera-actions">
-            <button class="button button-primary" id="camera-button" type="button">Activar cámara</button>
-            <button class="button button-secondary" id="demo-button" type="button">Simular lectura</button>
+            <button class="button button-secondary" id="camera-button" type="button" hidden>Detener cámara</button>
           </div>
-          <div class="status"><span class="status-dot" id="status-dot"></span><span id="camera-status">Cámara desconectada</span></div>
+          <div class="status"><span class="status-dot" id="status-dot"></span><span id="camera-status">Selecciona un método de registro</span></div>
         </article>
 
         <article class="card logs-card">
@@ -81,9 +84,31 @@
     </main>
   </div>
 
+  <div class="modal" id="id-modal" role="dialog" aria-modal="true" aria-labelledby="id-modal-title">
+    <form class="modal-card" id="id-form">
+      <div class="modal-header">
+        <div>
+          <h2 id="id-modal-title">Marcar por ID</h2>
+          <p class="card-subtitle">Ingresa el ID del usuario para registrar la hora.</p>
+        </div>
+        <button class="close" id="close-id-button" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <label class="form-label" for="user-id">ID del usuario</label>
+      <input class="form-input" id="user-id" name="user-id" value="USR-001" required autocomplete="off">
+      <div class="form-actions">
+        <button class="button button-secondary" id="cancel-id-button" type="button">Cancelar</button>
+        <button class="button button-primary" type="submit">Marcar hora</button>
+      </div>
+    </form>
+  </div>
+
   <script>
     const cameraButton = document.querySelector("#camera-button");
-    const demoButton = document.querySelector("#demo-button");
+    const idButton = document.querySelector("#id-button");
+    const qrButton = document.querySelector("#qr-button");
+    const idModal = document.querySelector("#id-modal");
+    const idForm = document.querySelector("#id-form");
+    const userId = document.querySelector("#user-id");
     const camera = document.querySelector("#camera");
     const cameraFrame = document.querySelector("#camera-frame");
     const cameraStatus = document.querySelector("#camera-status");
@@ -102,7 +127,8 @@
       cameraFrame.classList.toggle("is-live", isLive);
       statusDot.classList.toggle("live", isLive);
       cameraStatus.textContent = message;
-      cameraButton.textContent = isLive ? "Detener cámara" : "Activar cámara";
+      cameraButton.hidden = !isLive;
+      cameraButton.textContent = "Detener cámara";
     }
 
     async function toggleCamera() {
@@ -127,18 +153,34 @@
       }
     }
 
-    function addDemoLog() {
+    function addLog(workerId) {
       const now = new Date();
       const time = now.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
       const row = document.createElement("tr");
-      row.innerHTML = `<td>Lectura de demostración</td><td>${time}</td><td>${selectedMovement}</td><td><span class="badge badge-success">Puntual</span></td>`;
+      row.innerHTML = `<td>${workerId}</td><td>${time}</td><td>${selectedMovement}</td><td><span class="badge badge-success">Puntual</span></td>`;
       logs.prepend(row);
       logCount.textContent = `${logs.rows.length} registros`;
       document.querySelector("#empty-logs").style.display = "none";
     }
 
     cameraButton.addEventListener("click", toggleCamera);
-    demoButton.addEventListener("click", addDemoLog);
+    idButton.addEventListener("click", () => {
+      idModal.classList.add("open");
+      userId.focus();
+      userId.select();
+    });
+    qrButton.addEventListener("click", toggleCamera);
+    idForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      addLog(userId.value.trim());
+      idModal.classList.remove("open");
+      cameraStatus.textContent = `Hora marcada para ${userId.value.trim()}`;
+    });
+    document.querySelector("#close-id-button").addEventListener("click", () => idModal.classList.remove("open"));
+    document.querySelector("#cancel-id-button").addEventListener("click", () => idModal.classList.remove("open"));
+    idModal.addEventListener("click", (event) => {
+      if (event.target === idModal) idModal.classList.remove("open");
+    });
     movementButtons.forEach((button) => {
       button.addEventListener("click", () => {
         selectedMovement = button.dataset.movement;

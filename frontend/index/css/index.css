@@ -44,6 +44,8 @@ h2 { margin: 0; font-size: 1.1rem; }
 .camera-placeholder { max-width: 250px; padding: 20px; color: #41506a; text-align: center; }
 .camera-icon { margin-bottom: 12px; color: #536584; font-size: 2.4rem; }
 .camera-frame.is-live .camera-placeholder { display: none; }
+.register-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
+.register-actions .button { min-width: 180px; }
 .scan-line { display: none; position: absolute; width: 75%; height: 2px; background: #8de7cf; box-shadow: 0 0 14px #8de7cf; animation: scan 2.2s ease-in-out infinite; }
 .camera-frame.is-live .scan-line { display: block; }
 @keyframes scan { 0%, 100% { transform: translateY(-100px); } 50% { transform: translateY(100px); } }
@@ -70,6 +72,14 @@ tbody tr:last-child td { border-bottom: 0; }
 .mockup-actions .button { flex: 1; padding: 9px 10px; font-size: .8rem; }
 .button-entry { color: #205e49; background: #d9f1e7; }
 .button-exit { color: #8b3c48; background: #f9e1e6; }
+.modal { display: none; position: fixed; inset: 0; z-index: 3; place-items: center; padding: 20px; background: rgba(15, 23, 48, .55); }
+.modal.open { display: grid; }
+.modal-card { width: min(100%, 430px); padding: 26px; background: #fff; border-radius: 14px; box-shadow: 0 20px 50px rgba(15, 23, 48, .2); }
+.modal-header { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.close { border: 0; color: var(--muted); background: transparent; font-size: 1.5rem; line-height: 1; }
+.form-label { display: block; margin-bottom: 7px; color: var(--muted); font-size: .8rem; font-weight: 700; }
+.form-input { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); font: inherit; }
+.form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
 @media (max-width: 900px) {
   .sidebar { width: 72px; padding: 20px 10px; }
   .brand { justify-content: center; margin: 0 0 34px; }
