@@ -7,7 +7,10 @@ La pantalla [frontend/index/index.html](frontend/index/index.html) permite:
 - Registrar entradas y salidas por ID o por código QR.
 - Detectar automáticamente el movimiento según las lecturas del trabajador durante el día.
 - Clasificar entradas puntuales o con retardo y salidas permitidas.
+- Mostrar inicialmente el panel de logs vacío y, después de cada lectura, únicamente los movimientos del trabajador identificado.
+- Limpiar automáticamente la vista de logs después de 30 segundos, sin borrar los registros persistidos.
 - Persistir temporalmente los registros del día en `localStorage` mientras no existe conexión al backend.
+- Alternar entrada y salida según el número total de lecturas del trabajador, permitiendo registrar dobles turnos.
 - Renderizar los registros sin insertar contenido HTML proveniente del usuario.
 
 El lector QR usa `BarcodeDetector`, por lo que requiere un navegador compatible y permisos de cámara en un contexto seguro (`https` o `localhost`). En navegadores sin esa API se puede usar el registro por ID.

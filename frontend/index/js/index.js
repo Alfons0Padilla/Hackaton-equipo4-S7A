@@ -3,12 +3,7 @@
 
   const API_BASE_URL = window.CODE_SHIELD_API_BASE_URL || "";
   const STORAGE_KEY = "codeshieldqa.attendance.v1";
-  const DEMO_LOGS = [
-    { workerId: "USR-001", workerName: "Ana López", time: "08:05", movement: "Entrada", status: "Puntual" },
-    { workerId: "USR-002", workerName: "Juan Pérez", time: "08:15", movement: "Entrada", status: "Retardo" },
-    { workerId: "USR-003", workerName: "María Ruiz", time: "08:25", movement: "Entrada", status: "Falta" },
-    { workerId: "USR-004", workerName: "Pedro Díaz", time: "16:02", movement: "Salida", status: "Permitida" }
-  ];
+  const LOG_VIEW_TIMEOUT_MS = 30000;
 
   const elements = {
     cameraButton: document.querySelector("#camera-button"),
@@ -31,7 +26,7 @@
   let scanTimer;
   let lastScan = "";
   let lastScanAt = 0;
-  let activeDate = getTodayKey();
+  let clearLogsTimer;
 
   const localRepository = {
     async listToday() {
@@ -130,6 +125,18 @@
     elements.emptyLogs.style.display = logs.length ? "none" : "block";
   }
 
+  function filterWorkerLogs(logs, workerId) {
+    return logs.filter((log) => normalizeWorkerId(log.workerId || log.employeeId) === workerId);
+  }
+
+  function showWorkerLogs(logs, workerId) {
+    renderLogs(filterWorkerLogs(logs, workerId));
+    clearTimeout(clearLogsTimer);
+    clearLogsTimer = setTimeout(() => {
+      renderLogs([]);
+    }, LOG_VIEW_TIMEOUT_MS);
+  }
+
   function getMovement(readCount) {
     return readCount % 2 === 0 ? "Entrada" : "Salida";
   }
@@ -164,7 +171,7 @@
     const workerId = normalizeWorkerId(rawId);
     if (!workerId || workerId.length < 3) throw new Error("Ingresa un ID de trabajador válido.");
     const todayLogs = await attendanceRepository.listToday();
-    const workerLogs = todayLogs.filter((log) => normalizeWorkerId(log.workerId || log.employeeId) === workerId);
+    const workerLogs = filterWorkerLogs(todayLogs, workerId);
     const now = new Date();
     const movement = getMovement(workerLogs.length);
     const attendance = {
@@ -176,23 +183,9 @@
       date: getTodayKey()
     };
     await attendanceRepository.createAttendance(attendance);
-    renderLogs(await attendanceRepository.listToday());
+    showWorkerLogs(await attendanceRepository.listToday(), workerId);
     setStatus(`${movement} registrada para ${workerId}`);
     return attendance;
-  }
-
-  async function loadLogs() {
-    try {
-      let logs = await attendanceRepository.listToday();
-      if (!API_BASE_URL && !logs.length && activeDate === getTodayKey()) {
-        logs = DEMO_LOGS.map((log) => ({ ...log, date: getTodayKey() }));
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
-      }
-      renderLogs(logs);
-    } catch (error) {
-      renderLogs([]);
-      setStatus(error.message, false, true);
-    }
   }
 
   function stopCamera(message = "Cámara desconectada") {
@@ -276,6 +269,9 @@
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closeModal();
   });
-  window.addEventListener("beforeunload", () => stopCamera());
-  loadLogs();
+  window.addEventListener("beforeunload", () => {
+    stopCamera();
+    clearTimeout(clearLogsTimer);
+  });
+  renderLogs([]);
 })();
