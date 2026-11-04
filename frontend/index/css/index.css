@@ -57,6 +57,7 @@ h2 { margin: 0; font-size: 1.1rem; }
 .status { display: flex; align-items: center; gap: 8px; margin-top: 14px; color: var(--muted); font-size: .82rem; }
 .status-dot { width: 8px; height: 8px; background: #9ca5b8; border-radius: 50%; }
 .status-dot.live { background: var(--success); box-shadow: 0 0 0 4px #d8f3e8; }
+.status-dot.error { background: var(--danger); box-shadow: 0 0 0 4px #fde7eb; }
 .logs-card { min-height: 100%; }
 .table-wrap { min-height: 290px; overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: .84rem; }
@@ -75,6 +76,7 @@ tbody tr:last-child td { border-bottom: 0; }
 .close { border: 0; color: var(--muted); background: transparent; font-size: 1.5rem; line-height: 1; }
 .form-label { display: block; margin-bottom: 7px; color: var(--muted); font-size: .8rem; font-weight: 700; }
 .form-input { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); font: inherit; }
+.form-error { margin: 8px 0 0; color: var(--danger); font-size: .78rem; }
 .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
 @media (max-width: 900px) {
   .sidebar { width: 72px; padding: 20px 10px; }

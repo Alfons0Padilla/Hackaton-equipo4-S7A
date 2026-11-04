@@ -61,17 +61,12 @@
               <h2>Logs de asistencia</h2>
               <p class="card-subtitle">Movimientos registrados durante la jornada actual.</p>
             </div>
-            <span class="badge badge-success" id="log-count">4 registros</span>
+            <span class="badge badge-success" id="log-count">0 registros</span>
           </div>
           <div class="table-wrap">
             <table>
               <thead><tr><th>Trabajador</th><th>Hora</th><th>Movimiento</th><th>Estado</th></tr></thead>
-              <tbody id="logs">
-                <tr><td>Ana López</td><td>08:05</td><td>Entrada</td><td><span class="badge badge-success">Puntual</span></td></tr>
-                <tr><td>Juan Pérez</td><td>08:15</td><td>Entrada</td><td><span class="badge badge-warning">Retardo</span></td></tr>
-                <tr><td>María Ruiz</td><td>08:25</td><td>Entrada</td><td><span class="badge badge-danger">Falta</span></td></tr>
-                <tr><td>Pedro Díaz</td><td>16:02</td><td>Salida</td><td><span class="badge badge-success">Permitida</span></td></tr>
-              </tbody>
+              <tbody id="logs"></tbody>
             </table>
             <p class="empty" id="empty-logs">Todavía no hay registros.</p>
           </div>
@@ -81,7 +76,7 @@
   </div>
 
   <div class="modal" id="id-modal" role="dialog" aria-modal="true" aria-labelledby="id-modal-title">
-    <form class="modal-card" id="id-form">
+    <form class="modal-card" id="id-form" novalidate>
       <div class="modal-header">
         <div>
           <h2 id="id-modal-title">Marcar por ID</h2>
@@ -90,7 +85,8 @@
         <button class="close" id="close-id-button" type="button" aria-label="Cerrar">×</button>
       </div>
       <label class="form-label" for="user-id">ID del usuario</label>
-      <input class="form-input" id="user-id" name="user-id" value="USR-001" required autocomplete="off">
+      <input class="form-input" id="user-id" name="user-id" required autocomplete="off" placeholder="Ej. USR-001" maxlength="64">
+      <p class="form-error" id="id-error" role="alert" hidden></p>
       <div class="form-actions">
         <button class="button button-secondary" id="cancel-id-button" type="button">Cancelar</button>
         <button class="button button-primary" type="submit">Marcar hora</button>
@@ -98,112 +94,6 @@
     </form>
   </div>
 
-  <script>
-    const cameraButton = document.querySelector("#camera-button");
-    const idButton = document.querySelector("#id-button");
-    const qrButton = document.querySelector("#qr-button");
-    const idModal = document.querySelector("#id-modal");
-    const idForm = document.querySelector("#id-form");
-    const userId = document.querySelector("#user-id");
-    const camera = document.querySelector("#camera");
-    const cameraFrame = document.querySelector("#camera-frame");
-    const cameraStatus = document.querySelector("#camera-status");
-    const statusDot = document.querySelector("#status-dot");
-    const logs = document.querySelector("#logs");
-    const logCount = document.querySelector("#log-count");
-    const dailyReads = new Map();
-    let activeDay;
-    let stream;
-
-    document.querySelector("#current-date").textContent = new Intl.DateTimeFormat("es-MX", {
-      weekday: "long", day: "numeric", month: "long", year: "numeric"
-    }).format(new Date());
-
-    function setCameraStatus(isLive, message) {
-      cameraFrame.classList.toggle("is-live", isLive);
-      statusDot.classList.toggle("live", isLive);
-      cameraStatus.textContent = message;
-      cameraButton.hidden = !isLive;
-      cameraButton.textContent = "Detener cámara";
-    }
-
-    async function toggleCamera() {
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-        stream = undefined;
-        camera.srcObject = null;
-        setCameraStatus(false, "Cámara desconectada");
-        return;
-      }
-      if (!navigator.mediaDevices?.getUserMedia) {
-        setCameraStatus(false, "El navegador no permite acceso a la cámara");
-        return;
-      }
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
-        camera.srcObject = stream;
-        setCameraStatus(true, "Cámara activa · lista para escanear");
-      } catch (error) {
-        setCameraStatus(false, "No se pudo acceder a la cámara");
-        console.error("No se pudo iniciar la cámara:", error);
-      }
-    }
-
-    function getTodayKey() {
-      return new Date().toISOString().slice(0, 10);
-    }
-
-    activeDay = getTodayKey();
-
-    function getMovement(readCount) {
-      const movements = [
-        "Entrada",
-        "Salida",
-        "Entrada · doble turno",
-        "Salida · fin de segundo turno"
-      ];
-      return movements[readCount] || (readCount % 2 === 0 ? "Entrada" : "Salida");
-    }
-
-    function getWorkerReadCount(workerId) {
-      if (getTodayKey() !== activeDay) {
-        dailyReads.clear();
-        activeDay = getTodayKey();
-      }
-      return dailyReads.get(workerId) || 0;
-    }
-
-    function addLog(workerId) {
-      const now = new Date();
-      const time = now.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
-      const readCount = getWorkerReadCount(workerId);
-      const movement = getMovement(readCount);
-      const row = document.createElement("tr");
-      row.innerHTML = `<td>${workerId}</td><td>${time}</td><td>${movement}</td><td><span class="badge badge-success">Registrada</span></td>`;
-      logs.prepend(row);
-      dailyReads.set(workerId, readCount + 1);
-      logCount.textContent = `${logs.rows.length} registros`;
-      document.querySelector("#empty-logs").style.display = "none";
-      cameraStatus.textContent = `${movement} registrada para ${workerId}`;
-    }
-
-    cameraButton.addEventListener("click", toggleCamera);
-    idButton.addEventListener("click", () => {
-      idModal.classList.add("open");
-      userId.focus();
-      userId.select();
-    });
-    qrButton.addEventListener("click", toggleCamera);
-    idForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-      addLog(userId.value.trim());
-      idModal.classList.remove("open");
-    });
-    document.querySelector("#close-id-button").addEventListener("click", () => idModal.classList.remove("open"));
-    document.querySelector("#cancel-id-button").addEventListener("click", () => idModal.classList.remove("open"));
-    idModal.addEventListener("click", (event) => {
-      if (event.target === idModal) idModal.classList.remove("open");
-    });
-  </script>
+  <script src="js/index.js"></script>
 </body>
 </html>

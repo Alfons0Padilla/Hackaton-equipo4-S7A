@@ -1,5 +1,30 @@
 # Hackaton CodeShieldQA
 
+## Índice de asistencia
+
+La pantalla [frontend/index/index.html](frontend/index/index.html) permite:
+
+- Registrar entradas y salidas por ID o por código QR.
+- Detectar automáticamente el movimiento según las lecturas del trabajador durante el día.
+- Clasificar entradas puntuales o con retardo y salidas permitidas.
+- Persistir temporalmente los registros del día en `localStorage` mientras no existe conexión al backend.
+- Renderizar los registros sin insertar contenido HTML proveniente del usuario.
+
+El lector QR usa `BarcodeDetector`, por lo que requiere un navegador compatible y permisos de cámara en un contexto seguro (`https` o `localhost`). En navegadores sin esa API se puede usar el registro por ID.
+
+### Conexión futura con la API
+
+Por defecto el frontend usa el adaptador local. Cuando exista el backend, define `window.CODE_SHIELD_API_BASE_URL` antes de cargar `frontend/index/js/index.js`. El adaptador espera:
+
+- `GET /attendance?date=YYYY-MM-DD`: devuelve registros del día con `workerId` o `employeeId`, `workerName`, `time`, `movement` y `status`.
+- `POST /attendance`: recibe `codigo_qr`, `empleado_idempleado` cuando el valor es numérico, `fecha_asistencia`, `hora_movimiento`, `tipo_movimiento` e `incidencia`, alineados con `registro_asistencia` en [backend/reloj_checador_db.sql](backend/reloj_checador_db.sql).
+
+La variable de configuración debe establecerse antes del script:
+
+```html
+<script>window.CODE_SHIELD_API_BASE_URL = "http://localhost:3000/api";</script>
+<script src="js/index.js"></script>
+```
 
 
 ## Getting started
