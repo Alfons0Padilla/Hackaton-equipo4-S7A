@@ -41,17 +41,13 @@
             <div class="camera-placeholder">
               <div class="camera-icon">▣</div>
               <strong>Registro de asistencia</strong>
-              <p>Marca la hora con el ID del usuario o inicia el lector QR.</p>
+              <p>La primera lectura registra la entrada y las siguientes se asignan automáticamente.</p>
               <div class="register-actions">
                 <button class="button button-primary" id="id-button" type="button">Marcar por ID</button>
                 <button class="button button-secondary" id="qr-button" type="button">Iniciar con QR</button>
               </div>
             </div>
             <span class="scan-line" aria-hidden="true"></span>
-          </div>
-          <div class="mockup-actions" aria-label="Tipo de movimiento">
-            <button class="button button-entry" type="button" data-movement="Entrada">Entrada</button>
-            <button class="button button-exit" type="button" data-movement="Salida">Salida</button>
           </div>
           <div class="camera-actions">
             <button class="button button-secondary" id="camera-button" type="button" hidden>Detener cámara</button>
@@ -115,8 +111,8 @@
     const statusDot = document.querySelector("#status-dot");
     const logs = document.querySelector("#logs");
     const logCount = document.querySelector("#log-count");
-    const movementButtons = document.querySelectorAll("[data-movement]");
-    let selectedMovement = "Entrada";
+    const dailyReads = new Map();
+    let activeDay;
     let stream;
 
     document.querySelector("#current-date").textContent = new Intl.DateTimeFormat("es-MX", {
@@ -153,14 +149,42 @@
       }
     }
 
+    function getTodayKey() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    activeDay = getTodayKey();
+
+    function getMovement(readCount) {
+      const movements = [
+        "Entrada",
+        "Salida",
+        "Entrada · doble turno",
+        "Salida · fin de segundo turno"
+      ];
+      return movements[readCount] || (readCount % 2 === 0 ? "Entrada" : "Salida");
+    }
+
+    function getWorkerReadCount(workerId) {
+      if (getTodayKey() !== activeDay) {
+        dailyReads.clear();
+        activeDay = getTodayKey();
+      }
+      return dailyReads.get(workerId) || 0;
+    }
+
     function addLog(workerId) {
       const now = new Date();
       const time = now.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
+      const readCount = getWorkerReadCount(workerId);
+      const movement = getMovement(readCount);
       const row = document.createElement("tr");
-      row.innerHTML = `<td>${workerId}</td><td>${time}</td><td>${selectedMovement}</td><td><span class="badge badge-success">Puntual</span></td>`;
+      row.innerHTML = `<td>${workerId}</td><td>${time}</td><td>${movement}</td><td><span class="badge badge-success">Registrada</span></td>`;
       logs.prepend(row);
+      dailyReads.set(workerId, readCount + 1);
       logCount.textContent = `${logs.rows.length} registros`;
       document.querySelector("#empty-logs").style.display = "none";
+      cameraStatus.textContent = `${movement} registrada para ${workerId}`;
     }
 
     cameraButton.addEventListener("click", toggleCamera);
@@ -174,18 +198,11 @@
       event.preventDefault();
       addLog(userId.value.trim());
       idModal.classList.remove("open");
-      cameraStatus.textContent = `Hora marcada para ${userId.value.trim()}`;
     });
     document.querySelector("#close-id-button").addEventListener("click", () => idModal.classList.remove("open"));
     document.querySelector("#cancel-id-button").addEventListener("click", () => idModal.classList.remove("open"));
     idModal.addEventListener("click", (event) => {
       if (event.target === idModal) idModal.classList.remove("open");
-    });
-    movementButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        selectedMovement = button.dataset.movement;
-        movementButtons.forEach((item) => item.setAttribute("aria-pressed", item === button ? "true" : "false"));
-      });
     });
   </script>
 </body>

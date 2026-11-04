@@ -68,10 +68,6 @@ tbody tr:last-child td { border-bottom: 0; }
 .badge-warning { color: var(--warning); background: #fff1d8; }
 .badge-danger { color: var(--danger); background: #fde7eb; }
 .empty { display: none; padding: 36px 12px; color: var(--muted); text-align: center; }
-.mockup-actions { display: flex; gap: 8px; margin-top: 12px; }
-.mockup-actions .button { flex: 1; padding: 9px 10px; font-size: .8rem; }
-.button-entry { color: #205e49; background: #d9f1e7; }
-.button-exit { color: #8b3c48; background: #f9e1e6; }
 .modal { display: none; position: fixed; inset: 0; z-index: 3; place-items: center; padding: 20px; background: rgba(15, 23, 48, .55); }
 .modal.open { display: grid; }
 .modal-card { width: min(100%, 430px); padding: 26px; background: #fff; border-radius: 14px; box-shadow: 0 20px 50px rgba(15, 23, 48, .2); }
