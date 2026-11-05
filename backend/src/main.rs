@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, MySqlPool};
 use std::{collections::HashMap, net::SocketAddr};
 use tower_http::cors::CorsLayer;
+use lettre::{Message, SmtpTransport, Transport, transport::smtp::authentication::Credentials};
 
 #[derive(Clone)]
 struct AppState { pool: MySqlPool }
@@ -42,6 +43,10 @@ struct AsistenciaPayload { codigo_qr: String, fecha_simulada: Option<String>, ho
 async fn main() {
     dotenvy::dotenv().ok();
     let db_url = std::env::var("DATABASE_URL").expect("Falta DATABASE_URL en .env");
+    // Variables de entorno para el correo (Añádelas a tu archivo .env)
+    let smtp_user = std::env::var("SMTP_USER").expect("Falta SMTP_USER en .env");
+    let smtp_pass = std::env::var("SMTP_PASS").expect("Falta SMTP_PASS en .env");
+
     let pool = MySqlPool::connect(&db_url).await.unwrap();
     let state = AppState { pool };
 
@@ -235,6 +240,40 @@ async fn registrar_asistencia(State(state): State<AppState>, Json(payload): Json
         let row: Option<(i32, i32, i32)> = sqlx::query_as("SELECT idregistro_retardos, total_retardos, faltas_admin_gener FROM registro_retardos WHERE empleado_idempleado=? AND quincena_inicio=?").bind(emp.idempleado).bind(&q_inicio).fetch_optional(&state.pool).await.unwrap_or(None);
         if let Some((id, total, _)) = row { sqlx::query("UPDATE registro_retardos SET total_retardos=?, faltas_admin_gener=? WHERE idregistro_retardos=?").bind(total + 1).bind((total + 1) / 2).bind(id).execute(&state.pool).await.unwrap(); } 
         else { sqlx::query("INSERT INTO registro_retardos (empleado_idempleado, quincena_inicio, quincena_fin, total_retardos, faltas_admin_gener) VALUES (?, ?, ?, 1, 0)").bind(emp.idempleado).bind(&q_inicio).bind(&q_fin).execute(&state.pool).await.unwrap(); }
+    }
+
+    // ENVÍO DE CORREO SI HAY INCIDENCIA
+    if incidencia != "PUNTUAL" && incidencia != "SALIDA_PERMITIDA" {
+        let smtp_user = std::env::var("SMTP_USER").unwrap_or_default();
+        let smtp_pass = std::env::var("SMTP_PASS").unwrap_or_default();
+
+        if !smtp_user.is_empty() && !smtp_pass.is_empty() {
+            let nombre_completo = format!("{} {}", emp.nombre_empleado, emp.apellido_P_empleado);
+            let asunto = format!("Notificación de Incidencia: {}", incidencia);
+            let cuerpo = format!("Nombre del trabajador: {}\nNúmero de Empleado: {}\nFecha y hora del registro: {} {}\nTipo de incidencia: {}\nHorario programado: {} | Horario registrado: {}", 
+                nombre_completo, emp.idempleado, fecha_str, hora_str, incidencia, hora_prog.format("%H:%M"), hora.format("%H:%M"));
+
+            let email = Message::builder()
+                .from(format!("Sistema Reloj Checador <{}>", smtp_user).parse().unwrap())
+                .to(emp.correo_empleado.parse().unwrap())
+                .subject(asunto)
+                .body(cuerpo)
+                .unwrap();
+
+            let creds = Credentials::new(smtp_user, smtp_pass);
+            let mailer = SmtpTransport::relay("smtp-mail.outlook.com")
+                .unwrap()
+                .credentials(creds)
+                .build();
+
+            // Enviamos el correo en segundo plano para no bloquear la respuesta al usuario
+            tokio::spawn(async move {
+                match mailer.send(&email) {
+                    Ok(_) => println!("Correo enviado a {}", emp.correo_empleado),
+                    Err(e) => eprintln!("Error enviando correo: {:?}", e),
+                }
+            });
+        }
     }
 
     Ok(Json(serde_json::json!({
