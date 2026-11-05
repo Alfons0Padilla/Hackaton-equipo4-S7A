@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Terminal de Asistencia</title>
+  <link rel="stylesheet" href="css/index.css">
+  <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">C</span><span>CodeShieldQA</span></div>
+      <p class="nav-label">Terminal</p>
+      <nav><a class="nav-link active" href="#"><span>▣</span><span>Asistencia Lector</span></a></nav>
+      <p class="sidebar-footer">Solo Personal Autorizado</p>
+    </aside>
+
+    <main class="main">
+      <h1 style="margin:0 0 24px;">Terminal de Asistencia</h1>
+      <div class="grid">
+        <section class="card">
+          <p class="clock" id="live-clock" style="transition: color 0.3s;">00:00:00</p>
+          <p class="subtitle" style="margin-bottom:15px; color:gray;">Acerca tu código QR a la cámara para registrar entrada o salida.</p>
+          <div id="reader" style="width:100%; border:2px dashed #ccc; border-radius:12px; overflow:hidden;"></div>
+        </section>
+        <section class="card">
+          <h2 class="section-title">Registro Manual</h2>
+          <p class="subtitle">Ingresa tu código si no puedes usar la cámara.</p>
+          <div class="form-field">
+            <label>Código de Empleado</label>
+            <input type="text" id="qr-input" placeholder="Ej. QR-EMP-001" style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:6px;">
+          </div>
+          <button type="button" class="btn-primary" id="btn-registrar" style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:6px; cursor:pointer;">Registrar Asistencia</button>
+          <div id="result-box" class="result-box" style="margin-top:20px; padding:15px; border-radius:8px; display:none;"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script src="js/index.js"></script>
+</body>
+</html>
