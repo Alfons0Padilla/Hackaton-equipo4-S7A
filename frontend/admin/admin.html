@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CodeShieldQA | Administración</title>
+  <link rel="stylesheet" href="css/admin.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="../index/index.html"><span class="brand-mark">C</span><span>CodeShieldQA</span></a>
+      <p class="nav-label">Panel</p>
+      <nav>
+        <a class="nav-link" href="../index/index.html"><span>▣</span><span>Asistencia (Lector QR)</span></a>
+        <a class="nav-link active" href="admin.html"><span>⚙</span><span>Administración</span></a>
+      </nav>
+      <p class="sidebar-footer">Reto 1 · Reloj Checador Web</p>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Gestión de Personal y Reportes</p>
+          <h1>Administración</h1>
+        </div>
+        <time class="date" id="current-date"></time>
+      </header>
+
+      <div class="admin-layout">
+        <section class="card list-section">
+          <input type="search" id="search-input" class="search-bar" placeholder="Buscar empleado...">
+          <ul class="employee-list" id="employee-list"></ul>
+        </section>
+
+        <div class="action-column">
+          <button type="button" class="btn-action btn-delete" id="btn-delete">Eliminar</button>
+          <button type="button" class="btn-action btn-edit" id="btn-edit">Editar</button>
+          <button type="button" class="btn-action btn-add" id="btn-add">Agregar</button>
+        </div>
+
+        <section class="card">
+          <form class="form-grid" id="employee-form" onsubmit="event.preventDefault();">
+            <div class="form-field">
+              <label>Nombre</label>
+              <input type="text" id="emp-nombre" required disabled>
+            </div>
+            <div class="form-field">
+              <label>Apellido PA</label>
+              <input type="text" id="emp-app" required disabled>
+            </div>
+            <div class="form-field">
+              <label>Apellido MA</label>
+              <input type="text" id="emp-apm" disabled>
+            </div>
+            <div class="form-field">
+              <label>Num empleado</label>
+              <input type="text" id="emp-id" class="readonly-input" disabled readonly>
+            </div>
+            <div class="form-field full">
+              <label>Correo Electrónico</label>
+              <input type="email" id="emp-correo" required disabled>
+            </div>
+            <div class="form-field full">
+              <label>Configuración de Horarios</label>
+              <div class="weekly-schedule">
+                <div class="schedule-header">
+                  <span>Día</span><span>Entrada 1</span><span>Salida 1</span><span>Entrada 2</span><span>Salida 2</span>
+                </div>
+                <div id="schedule-rows"></div>
+              </div>
+            </div>
+          </form>
+
+          <div class="qr-section">
+            <div class="qr-box" id="qr-container"></div>
+            <div>
+              <label>Código QR Único</label>
+              <p id="qr-text" style="margin: 6px 0 12px; font-weight: 800; color: var(--primary);">—</p>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button type="button" class="button-secondary" id="btn-new-qr">Generar nuevo QR</button>
+                <button type="button" class="button-secondary" onclick="window.print()">Imprimir Gafete</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="reports-section">
+        <section class="card">
+          <div class="report-header">
+            <div>
+              <h2 style="margin:0;">Reporte Diario</h2>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <input type="date" id="report-date" style="width:auto;">
+              <button type="button" class="button-secondary" onclick="cargarReportes()">Actualizar</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Trabajador</th><th>Número</th><th>Horario</th><th>Registro</th><th>Incidencia</th></tr></thead>
+            <tbody id="daily-report-body"></tbody>
+          </table>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script src="js/admin.js"></script>
+</body>
+</html>
