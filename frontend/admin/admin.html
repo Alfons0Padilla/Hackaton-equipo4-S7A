@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CodeShieldQA | Administración</title>
+  <link rel="stylesheet" href="css/admin.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+  <div id="login-overlay" style="position:fixed; inset:0; background:var(--ink); z-index:999; display:flex; align-items:center; justify-content:center;">
+    <div style="background:white; padding:40px; border-radius:12px; width:100%; max-width:400px; text-align:center;">
+      <h2 style="margin-top:0;">Acceso Administrativo</h2>
+      <input type="text" id="login-user" placeholder="Usuario (Ej. admin)" style="width:100%; margin-bottom:15px; padding:12px; border:1px solid #ccc; border-radius:6px;">
+      <input type="password" id="login-pass" placeholder="Contraseña (Ej. admin123)" style="width:100%; margin-bottom:20px; padding:12px; border:1px solid #ccc; border-radius:6px;">
+      <button onclick="intentarLogin()" class="btn-action btn-add" style="width:100%;">Iniciar Sesión</button>
+      <p id="login-err" style="color:red; display:none; font-size:0.85rem; margin-top:10px;">Credenciales incorrectas</p>
+    </div>
+  </div>
+
+  <div class="app-shell" style="display:none;" id="main-app">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">C</span><span>CodeShieldQA</span></div>
+      <p class="nav-label">Panel</p>
+      <nav>
+        <a class="nav-link active" href="#" id="tab-empleados"><span>👥</span><span>Empleados</span></a>
+        <a class="nav-link" href="#" id="tab-reportes"><span>📊</span><span>Reportes</span></a>
+        <a class="nav-link" href="#" id="tab-admins"><span>🔐</span><span>Usuarios Admin</span></a>
+      </nav>
+      <button onclick="window.location.reload()" style="margin-top:auto; background:none; border:none; color:#9da9d1; cursor:pointer; text-align:left; padding:10px;">Salir</button>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="top-eyebrow">Gestión de Personal</p>
+          <h1 id="top-title">Administración</h1>
+        </div>
+        <div style="position:relative;" class="hide-on-print">
+          <button id="btn-robot" style="font-size:2rem; background:none; border:none; cursor:pointer;" title="Simular Entorno Global">🤖</button>
+          <div id="sim-dropdown" style="display:none; position:absolute; right:0; top:50px; background:white; padding:20px; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.15); width:280px; z-index:100; border:1px solid var(--line);">
+            <h4 style="margin-top:0; margin-bottom:10px;">Alterar Hora Global</h4>
+            <p style="font-size:0.75rem; color:gray; margin-bottom:15px;">Fija una fecha y hora falsa. Esto afectará a la Terminal de Asistencia para que puedas probar las reglas sin inyectar directamente.</p>
+            <input type="date" id="sim-date" style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #ccc; border-radius:4px;">
+            <input type="time" id="sim-time" value="08:15" style="width:100%; margin-bottom:15px; padding:8px; border:1px solid #ccc; border-radius:4px;">
+            <button onclick="fijarSimulacion()" class="btn-action btn-add" style="width:100%; margin-bottom:10px;">Fijar Simulación en Terminal</button>
+            <button onclick="limpiarSimulacion()" class="btn-action btn-delete" style="width:100%;">Apagar Simulación</button>
+          </div>
+        </div>
+      </header>
+
+      <div id="view-empleados" class="admin-layout">
+        <section class="card list-section">
+          <input type="search" id="search-input" class="search-bar" placeholder="Buscar por nombre o número...">
+          <ul class="employee-list" id="employee-list"></ul>
+        </section>
+        <div class="action-column">
+          <button type="button" class="btn-action btn-delete" id="btn-delete">Eliminar</button>
+          <button type="button" class="btn-action btn-edit" id="btn-edit">Editar</button>
+          <button type="button" class="btn-action btn-add" id="btn-add">Agregar</button>
+        </div>
+        <section class="card">
+          <form class="form-grid" id="employee-form" onsubmit="event.preventDefault();">
+            <div class="form-field"><label>Nombre</label><input type="text" id="emp-nombre" disabled></div>
+            <div class="form-field"><label>Apellido PA</label><input type="text" id="emp-app" disabled></div>
+            <div class="form-field"><label>Apellido MA</label><input type="text" id="emp-apm" disabled></div>
+            <div class="form-field"><label>Num empleado</label><input type="text" id="emp-id" class="readonly-input" disabled readonly></div>
+            <div class="form-field full"><label>Correo</label><input type="email" id="emp-correo" disabled></div>
+            <div class="form-field full">
+              <label>Horarios</label>
+              <div class="weekly-schedule">
+                <div class="schedule-header"><span>Día</span><span>Ent 1</span><span>Sal 1</span><span>Ent 2</span><span>Sal 2</span></div>
+                <div id="schedule-rows"></div>
+              </div>
+            </div>
+          </form>
+          <div class="qr-section">
+            <div class="qr-box" id="qr-container"></div>
+            <div class="hide-on-print">
+              <p id="qr-text" style="font-weight: 800; color: var(--primary);">—</p>
+              <div style="display:flex; gap:10px;">
+                <button type="button" class="button-secondary" id="btn-new-qr">Nuevo QR</button>
+                <button type="button" class="button-secondary" onclick="window.print()">Imprimir Gafete</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div id="view-reportes" class="reports-section" style="display:none;">
+        <section class="card">
+          <div class="report-header">
+            <div><h2 style="margin:0;">Reporte Diario de Asistencia</h2></div>
+            <div style="display:flex; gap:10px; align-items:center;" class="hide-on-print">
+              <input type="date" id="report-date" style="padding:8px; border:1px solid var(--line); border-radius:6px;">
+              <button type="button" class="btn-action btn-primary" onclick="cargarReportes()">Actualizar Reportes</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Trabajador</th><th>Número</th><th>Horario</th><th>Registro</th><th>Incidencia</th></tr></thead>
+            <tbody id="daily-report-body"></tbody>
+          </table>
+        </section>
+        <section class="card">
+          <div class="report-header">
+            <div><h2 style="margin:0;">Reporte Quincenal</h2><p style="margin:4px 0 0; color:var(--muted); font-size:.85rem;" id="quincena-label"></p></div>
+          </div>
+          <table>
+            <thead><tr><th>Trabajador</th><th>Número</th><th>Retardos Acumulados</th><th>Faltas Administrativas</th><th>Resumen</th></tr></thead>
+            <tbody id="biweekly-report-body"></tbody>
+          </table>
+        </section>
+      </div>
+
+      <div id="view-admins" class="admin-layout" style="display:none; grid-template-columns: 1fr 1fr;">
+        <section class="card">
+          <h2 style="margin-top:0;">Nuevo Administrador</h2>
+          <div class="form-field"><label>Usuario</label><input type="text" id="new-admin-user" style="margin-bottom:10px; border:1px solid var(--line); padding:10px;"></div>
+          <div class="form-field"><label>Contraseña</label><input type="password" id="new-admin-pass" style="margin-bottom:15px; border:1px solid var(--line); padding:10px;"></div>
+          <button onclick="crearAdmin()" class="btn-action btn-add">Crear Cuenta</button>
+        </section>
+        <section class="card">
+          <h2 style="margin-top:0;">Cuentas Activas</h2>
+          <ul id="admin-list" class="employee-list" style="height:auto; max-height:400px;"></ul>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script src="js/admin.js"></script>
+</body>
+</html>
